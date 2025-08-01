@@ -8,7 +8,7 @@ PromptCrafter-X is a modular prompt generation toolkit featuring a black and whi
 - Template engine supporting plain, instruction, and chain-of-thought styles
 - GPT export that emits chat-style payloads with model metadata
 - Hash logging and memory vault for traceability
-- Modern black-and-white GUI with single or batch modes and export options
+- Modern black-and-white GUI with single or batch modes, model selection, and export options
 
 ## Installation
 ```bash
@@ -24,7 +24,7 @@ python promptcli.py --profile text_generation --num 2 --baseline "heroic tale" -
 ```
 Export prompts in GPT format for a specific model:
 ```bash
-python promptcli.py --profile text_generation --num 1 --baseline "quick fox" --category tone --format gpt --gpt-model gpt-4o --tag gptdemo
+python promptcli.py --profile text_generation --num 1 --baseline "quick fox" --category tone --format gpt --model gpt-4o --tag gptdemo
 ```
 
 ## GUI Usage

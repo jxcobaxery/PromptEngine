@@ -4,30 +4,39 @@
     "vocab_bank": "data/vocab_text.json",
     "default_diff": 4,
     "format": "txt",
-    "gpt_model": "gpt-4o"
+    "models": ["gpt-4o", "gpt-3.5-turbo"],
+    "default_model": "gpt-4o"
   },
   "image_generation": {
     "description": "Designed for Stable Diffusion and Midjourney.",
     "vocab_bank": "data/vocab_image.json",
     "default_diff": 7,
-    "format": "json"
+    "format": "json",
+    "models": ["stable-diffusion", "midjourney"],
+    "default_model": "stable-diffusion"
   },
   "code_generation": {
     "description": "For function or snippet generation.",
     "vocab_bank": "data/vocab_code.json",
     "default_diff": 5,
-    "format": "txt"
+    "format": "txt",
+    "models": ["gpt-4o-code", "claude-code"],
+    "default_model": "gpt-4o-code"
   },
   "video_generation": {
     "description": "Stylistic scene and sequence building.",
     "vocab_bank": "data/vocab_video.json",
     "default_diff": 6,
-    "format": "json"
+    "format": "json",
+    "models": ["runway", "pika"],
+    "default_model": "runway"
   },
   "dialogue_agents": {
     "description": "Prompts for emotional tone, voice and instruction in agents.",
     "vocab_bank": "data/vocab_agents.json",
     "default_diff": 5,
-    "format": "json"
+    "format": "json",
+    "models": ["gpt-4o", "gpt-3.5-turbo"],
+    "default_model": "gpt-4o"
   }
 }

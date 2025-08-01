@@ -2,5 +2,18 @@
   "genre": "Literary or artistic category of the prompt.",
   "tone": "Overall emotional quality or mood.",
   "theme": "Central topic or message to explore.",
-  "style": "Distinctive form or technique of expression."
+  "style": "Distinctive form or technique of expression.",
+  "sensory": "Descriptors of look, feel, or atmosphere.",
+  "emotion": "Emotional ambience or feeling.",
+  "subject": "Primary focus or object in the prompt.",
+  "language": "Programming language target.",
+  "paradigm": "Programming style or approach.",
+  "feature": "Notable capability or construct.",
+  "library": "External toolkit or package.",
+  "personality": "Character traits for dialogue agents.",
+  "context": "Operational setting or use case.",
+  "goal": "Intended outcome or objective.",
+  "camera": "Cinematic camera techniques.",
+  "scene": "Visual environment or location.",
+  "motion": "Dynamic movement or shot style."
 }
