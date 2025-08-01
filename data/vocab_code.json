@@ -1,0 +1,6 @@
+{
+  "language": ["Python", "JavaScript", "Rust", "Go"],
+  "paradigm": ["functional", "object oriented", "procedural", "reactive"],
+  "feature": ["async processing", "type inference", "pattern matching", "metaprogramming"],
+  "library": ["NumPy", "React", "Tokio", "Flask"]
+}

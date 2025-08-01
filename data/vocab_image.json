@@ -1,0 +1,6 @@
+{
+  "sensory": ["soft lighting", "glowing skin", "ambient haze", "vibrant colors"],
+  "emotion": ["yearning", "serene", "ecstatic", "melancholy"],
+  "style": ["photorealistic", "dreamlike", "surreal", "impressionistic"],
+  "subject": ["ancient forest", "futuristic city", "lonely traveler", "mythic creature"]
+}

@@ -1,0 +1,2 @@
+# This project uses only the Python standard library.
+# tkinter (usually included with Python) is required for the GUI.

@@ -1,0 +1,6 @@
+{
+  "camera": ["tracking shot", "close-up", "wide angle", "dolly zoom"],
+  "scene": ["rainy alley", "sunlit meadow", "crowded market", "deserted highway"],
+  "motion": ["slow motion", "time lapse", "pan", "tilt"],
+  "style": ["noir", "cinematic", "documentary", "vintage"]
+}
