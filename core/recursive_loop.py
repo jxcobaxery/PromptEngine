@@ -33,10 +33,10 @@ class RecursivePromptDaemon:
             parts[idx] = "evolved " + parts[idx]
         return ", ".join(parts)
 
-    def run_recursive_loop(self, iterations: int = 5, diff: int = 5):
+    def run_recursive_loop(self, iterations: int = 5, diff: int = 5, template: str = "plain"):
         batch = []
         for _ in range(iterations):
-            original = self.engine.generate_prompt(diff)
+            original = self.engine.generate_prompt(diff, template=template)
             remixed = self._review_and_remix(original)
             entry = {
                 "timestamp": datetime.now().isoformat(),

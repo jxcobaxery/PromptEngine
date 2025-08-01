@@ -1,8 +1,8 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
 from pathlib import Path
 
-from core.prompt_engine import PromptEngine, save_prompts
+from core.prompt_engine import PromptEngine, save_prompts, templates
 from core.prompt_profiles import load_profiles, load_profile
 
 
@@ -11,6 +11,16 @@ class PromptGUI:
         self.root = root
         self.root.title("PromptCrafter-X :: Neural Forge")
         self.root.geometry("800x600")
+
+        style = ttk.Style()
+        style.theme_use("clam")
+        style.configure("TFrame", background="black")
+        style.configure("TLabel", background="black", foreground="white")
+        style.configure("TButton", background="black", foreground="white")
+        style.configure("TRadiobutton", background="black", foreground="white")
+        style.configure("TEntry", fieldbackground="black", foreground="white")
+        style.configure("TMenubutton", background="black", foreground="white")
+        self.root.configure(bg="black")
 
         self.profiles = load_profiles()
         profile_names = list(self.profiles.keys())
@@ -55,6 +65,14 @@ class PromptGUI:
         self.diff_slider.set(self.current_profile["default_diff"])
         self.diff_slider.pack()
 
+        # Output directory
+        dir_frame = ttk.Frame(root)
+        dir_frame.pack(pady=5)
+        ttk.Label(dir_frame, text="Output Folder").pack(side=tk.LEFT)
+        self.out_dir = tk.StringVar(value="outputs")
+        ttk.Entry(dir_frame, textvariable=self.out_dir, width=30).pack(side=tk.LEFT, padx=5)
+        ttk.Button(dir_frame, text="Browse", command=self.choose_dir).pack(side=tk.LEFT)
+
         # Output format and GPT model
         self.output_format = tk.StringVar(value=self.current_profile["format"])
         ttk.Label(root, text="Output Format").pack(pady=5)
@@ -83,6 +101,12 @@ class PromptGUI:
         self.tag_entry.insert(0, "gui")
         self.tag_entry.pack()
 
+        # Template selection
+        ttk.Label(root, text="Template").pack(pady=5)
+        self.template_var = tk.StringVar(value="plain")
+        self.template_menu = ttk.OptionMenu(root, self.template_var, "plain", *templates())
+        self.template_menu.pack()
+
         ttk.Button(root, text="Generate", command=self.generate).pack(pady=20)
         self.status = ttk.Label(root, text="Ready.")
         self.status.pack()
@@ -104,7 +128,9 @@ class PromptGUI:
         menu = self.category_menu["menu"]
         menu.delete(0, "end")
         for c in cats:
-            menu.add_command(label=c, command=lambda v=c: self.category_var.set(v))
+            definition = self.engine.category_definition(c)
+            label = f"{c} - {definition}" if definition else c
+            menu.add_command(label=label, command=lambda v=c: self.category_var.set(v))
         self.category_var.set("All")
 
     def on_mode_change(self):
@@ -120,6 +146,11 @@ class PromptGUI:
 
     def on_format_change(self, *_):
         self.toggle_gpt_model()
+
+    def choose_dir(self):
+        path = filedialog.askdirectory(initialdir=self.out_dir.get() or ".")
+        if path:
+            self.out_dir.set(path)
 
     def toggle_gpt_model(self):
         if self.output_format.get() == "gpt":
@@ -138,12 +169,21 @@ class PromptGUI:
             category = self.category_var.get()
             if category == "All":
                 category = None
-            prompts = self.engine.generate_batch(num, diff, baseline=baseline, category=category)
+            template = self.template_var.get()
+            prompts = self.engine.generate_batch(
+                num, diff, baseline=baseline, category=category, template=template
+            )
             fmt = self.output_format.get()
             model = self.gpt_model_var.get() if fmt == "gpt" else None
-            path = save_prompts(prompts, format=fmt, tag=tag, model=model)
-            self.status.config(text=f"Saved: {path}")
-            messagebox.showinfo("Success", f"Saved {len(prompts)} prompts to {path}")
+            path = save_prompts(
+                prompts,
+                format=fmt,
+                out_dir=self.out_dir.get(),
+                tag=tag,
+                model=model,
+            )
+            self.status.config(text=f"Saved: {path} 😺")
+            messagebox.showinfo("Success", f"Purrr! Saved {len(prompts)} prompts to {path}")
         except Exception as e:
             messagebox.showerror("Error", str(e))
             self.status.config(text="Error.")
