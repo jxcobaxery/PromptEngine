@@ -48,7 +48,7 @@ def main():
     )
     vault = PromptMemoryVault()
     for p in prompts:
-        vault.add_entry(p, category=args.profile)
+        vault.add_entry(p, category=args.category or args.profile, tags=[args.tag])
     print(f"✅ Generated {len(prompts)} prompts under profile '{args.profile}'")
 
 

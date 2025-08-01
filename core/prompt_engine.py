@@ -48,9 +48,10 @@ class PromptEngine:
             sample = random.sample(words, min(diff_level, len(words)))
             parts.extend(sample)
         else:
+            # sample diff_level terms from each category
             for cat, words in self.vocab.items():
                 sample = random.sample(words, min(diff_level, len(words)))
-                parts.append(random.choice(sample))
+                parts.extend(sample)
         content = ", ".join(parts)
         return self.template_renderer.render(content, baseline=baseline, template=template)
 
