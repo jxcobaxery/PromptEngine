@@ -85,6 +85,7 @@ class PromptGUI:
             "txt",
             "csv",
             "gpt",
+            command=self.on_format_change,
         )
         self.output_menu.pack()
 
@@ -118,6 +119,10 @@ class PromptGUI:
         self.output_format.set(self.current_profile["format"])
         self.update_model_menu()
 
+    def on_format_change(self, *_):
+        """Callback when output format changes."""
+        self.update_model_menu()
+
     def update_categories(self):
         if not self.engine:
             return
@@ -148,7 +153,7 @@ class PromptGUI:
     
     def update_model_menu(self):
         models = self.current_profile.get("models", []) if self.current_profile else []
-        if models:
+        if self.output_format.get() == "gpt" and models:
             default = self.current_profile.get("default_model", models[0])
             self.model_var.set(default)
             menu = self.model_menu["menu"]
