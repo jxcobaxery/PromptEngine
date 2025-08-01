@@ -3,7 +3,8 @@
     "description": "Optimized for GPT and LLMs.",
     "vocab_bank": "data/vocab_text.json",
     "default_diff": 4,
-    "format": "txt"
+    "format": "txt",
+    "gpt_model": "gpt-4o"
   },
   "image_generation": {
     "description": "Designed for Stable Diffusion and Midjourney.",

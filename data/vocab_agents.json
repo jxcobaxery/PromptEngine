@@ -1,0 +1,6 @@
+{
+  "personality": ["cheerful", "stoic", "sarcastic", "empathetic"],
+  "tone": ["formal", "casual", "enthusiastic", "serious"],
+  "context": ["customer support", "teaching", "storytelling", "coaching"],
+  "goal": ["assist user", "solve puzzle", "motivate", "explain concept"]
+}

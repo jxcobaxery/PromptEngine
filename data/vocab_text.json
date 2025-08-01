@@ -1,0 +1,6 @@
+{
+  "genre": ["fantasy", "sci-fi", "mystery", "romance"],
+  "tone": ["optimistic", "dark", "humorous", "melancholic"],
+  "theme": ["journey", "betrayal", "redemption", "discovery"],
+  "style": ["poetic", "minimalist", "verbose", "stream of consciousness"]
+}

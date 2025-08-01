@@ -1,117 +1,162 @@
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
-import json
-import random
-from datetime import datetime
+from tkinter import ttk, messagebox
 from pathlib import Path
-import os
-import hashlib
 
-# === CORE MODULES ===
-class PromptEngine:
-    def __init__(self, vocab_path="data/vocab_bank.json"):
-        self.vocab_path = vocab_path
-        self.vocab = self.load_vocab(vocab_path)
+from core.prompt_engine import PromptEngine, save_prompts
+from core.prompt_profiles import load_profiles, load_profile
 
-    def load_vocab(self, filepath):
-        with open(filepath, "r", encoding="utf-8") as f:
-            return json.load(f)
 
-    def generate_prompt(self, diff_level=5):
-        prompt_parts = []
-        for cat, words in self.vocab.items():
-            sample = random.sample(words, min(diff_level, len(words)))
-            prompt_parts.append(random.choice(sample))
-        return ", ".join(prompt_parts)
-
-    def generate_batch(self, n=100, diff_level=5):
-        return [self.generate_prompt(diff_level) for _ in range(n)]
-
-# === MEMORY VAULT ===
-def save_prompt_hash(prompt):
-    hash_val = hashlib.sha256(prompt.encode()).hexdigest()
-    with open("logs/prompt_hashes.txt", "a") as f:
-        f.write(f"{datetime.now().isoformat()} | {hash_val} | {prompt}\n")
-
-# === FILE WRITERS ===
-def save_prompts(prompts, format="json", out_dir="outputs", tag="default"):
-    Path(out_dir).mkdir(parents=True, exist_ok=True)
-    filename = f"batch_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{tag}"
-    filepath = Path(out_dir) / f"{filename}.{format}"
-
-    if format == "json":
-        with open(filepath, "w", encoding="utf-8") as f:
-            json.dump(prompts, f, indent=2)
-    elif format == "txt":
-        with open(filepath, "w", encoding="utf-8") as f:
-            for p in prompts:
-                f.write(p + "\n")
-    elif format == "csv":
-        with open(filepath, "w", encoding="utf-8") as f:
-            f.write("prompt\n")
-            for p in prompts:
-                f.write(f"\"{p}\"\n")
-    else:
-        raise ValueError("Unsupported format")
-
-    for p in prompts:
-        save_prompt_hash(p)
-
-    return filepath
-
-# === GUI ===
 class PromptGUI:
     def __init__(self, root):
-        self.engine = PromptEngine()
         self.root = root
         self.root.title("PromptCrafter-X :: Neural Forge")
-        self.root.geometry("700x500")
+        self.root.geometry("800x600")
 
+        self.profiles = load_profiles()
+        profile_names = list(self.profiles.keys())
+        self.profile_var = tk.StringVar(value=profile_names[0])
+        ttk.Label(root, text="Profile").pack(pady=5)
+        self.profile_menu = ttk.OptionMenu(root, self.profile_var, profile_names[0], *profile_names, command=self.on_profile_change)
+        self.profile_menu.pack()
+
+        self.engine = None
+        self.current_profile = None
+        self.on_profile_change(profile_names[0])
+
+        # Mode selection
+        self.mode_var = tk.StringVar(value="single")
+        mode_frame = ttk.Frame(root)
+        mode_frame.pack(pady=5)
+        ttk.Radiobutton(mode_frame, text="Single", variable=self.mode_var, value="single", command=self.on_mode_change).pack(side=tk.LEFT)
+        ttk.Radiobutton(mode_frame, text="Batch", variable=self.mode_var, value="batch", command=self.on_mode_change).pack(side=tk.LEFT)
+
+        # Number of prompts
         ttk.Label(root, text="Number of Prompts").pack(pady=5)
         self.num_entry = ttk.Entry(root)
-        self.num_entry.insert(0, "100")
+        self.num_entry.insert(0, "1")
+        self.num_entry.configure(state="disabled")
         self.num_entry.pack()
 
+        # Baseline text
+        ttk.Label(root, text="Baseline Text").pack(pady=5)
+        self.baseline_entry = ttk.Entry(root, width=60)
+        self.baseline_entry.pack()
+
+        # Category selection
+        ttk.Label(root, text="Category").pack(pady=5)
+        self.category_var = tk.StringVar(value="All")
+        self.category_menu = ttk.OptionMenu(root, self.category_var, "All", "All")
+        self.category_menu.pack()
+        self.update_categories()
+
+        # Differentiation slider
         ttk.Label(root, text="Differentiation Level (1-10)").pack(pady=5)
         self.diff_slider = ttk.Scale(root, from_=1, to=10, orient="horizontal")
-        self.diff_slider.set(5)
+        self.diff_slider.set(self.current_profile["default_diff"])
         self.diff_slider.pack()
 
-        self.output_format = tk.StringVar(value="json")
+        # Output format and GPT model
+        self.output_format = tk.StringVar(value=self.current_profile["format"])
         ttk.Label(root, text="Output Format").pack(pady=5)
-        ttk.OptionMenu(root, self.output_format, "json", "json", "txt", "csv").pack()
+        self.output_menu = ttk.OptionMenu(
+            root,
+            self.output_format,
+            self.current_profile["format"],
+            "json",
+            "txt",
+            "csv",
+            "gpt",
+            command=self.on_format_change,
+        )
+        self.output_menu.pack()
 
+        self.gpt_model_var = tk.StringVar(value=self.current_profile.get("gpt_model", "gpt-4o"))
+        self.gpt_label = ttk.Label(root, text="GPT Model")
+        self.gpt_model_menu = ttk.OptionMenu(
+            root, self.gpt_model_var, self.gpt_model_var.get(), "gpt-4o", "gpt-3.5-turbo"
+        )
+        self.toggle_gpt_model()
+
+        # Output tag
+        ttk.Label(root, text="Output Tag").pack(pady=5)
         self.tag_entry = ttk.Entry(root)
-        self.tag_entry.insert(0, "default")
-        ttk.Label(root, text="Output Tag (for folder naming)").pack(pady=5)
+        self.tag_entry.insert(0, "gui")
         self.tag_entry.pack()
 
-        ttk.Button(root, text="Generate Prompts", command=self.generate).pack(pady=20)
-
+        ttk.Button(root, text="Generate", command=self.generate).pack(pady=20)
         self.status = ttk.Label(root, text="Ready.")
         self.status.pack()
 
+    def on_profile_change(self, selection):
+        self.current_profile = load_profile(selection)
+        vocab_path = self.current_profile["vocab_bank"]
+        self.engine = PromptEngine(vocab_path)
+        self.update_categories()
+        self.diff_slider.set(self.current_profile["default_diff"])
+        self.output_format.set(self.current_profile["format"])
+        self.gpt_model_var.set(self.current_profile.get("gpt_model", "gpt-4o"))
+        self.toggle_gpt_model()
+
+    def update_categories(self):
+        if not self.engine:
+            return
+        cats = ["All"] + self.engine.categories()
+        menu = self.category_menu["menu"]
+        menu.delete(0, "end")
+        for c in cats:
+            menu.add_command(label=c, command=lambda v=c: self.category_var.set(v))
+        self.category_var.set("All")
+
+    def on_mode_change(self):
+        if self.mode_var.get() == "single":
+            self.num_entry.configure(state="disabled")
+            self.num_entry.delete(0, tk.END)
+            self.num_entry.insert(0, "1")
+        else:
+            self.num_entry.configure(state="normal")
+            if not self.num_entry.get() or self.num_entry.get() == "1":
+                self.num_entry.delete(0, tk.END)
+                self.num_entry.insert(0, "10")
+
+    def on_format_change(self, *_):
+        self.toggle_gpt_model()
+
+    def toggle_gpt_model(self):
+        if self.output_format.get() == "gpt":
+            self.gpt_label.pack(pady=5)
+            self.gpt_model_menu.pack()
+        else:
+            self.gpt_label.pack_forget()
+            self.gpt_model_menu.pack_forget()
+
     def generate(self):
         try:
-            num = int(self.num_entry.get())
+            num = 1 if self.mode_var.get() == "single" else int(self.num_entry.get())
             diff = int(self.diff_slider.get())
             tag = self.tag_entry.get().strip().replace(" ", "_")
-            prompts = self.engine.generate_batch(num, diff)
-            path = save_prompts(prompts, self.output_format.get(), tag=tag)
+            baseline = self.baseline_entry.get().strip()
+            category = self.category_var.get()
+            if category == "All":
+                category = None
+            prompts = self.engine.generate_batch(num, diff, baseline=baseline, category=category)
+            fmt = self.output_format.get()
+            model = self.gpt_model_var.get() if fmt == "gpt" else None
+            path = save_prompts(prompts, format=fmt, tag=tag, model=model)
             self.status.config(text=f"Saved: {path}")
             messagebox.showinfo("Success", f"Saved {len(prompts)} prompts to {path}")
         except Exception as e:
             messagebox.showerror("Error", str(e))
             self.status.config(text="Error.")
 
-# === ENTRY POINT ===
+
 def main():
-    os.makedirs("data", exist_ok=True)
-    os.makedirs("logs", exist_ok=True)
-    os.makedirs("outputs", exist_ok=True)
+    Path("data").mkdir(exist_ok=True)
+    Path("logs").mkdir(exist_ok=True)
+    Path("outputs").mkdir(exist_ok=True)
     root = tk.Tk()
     app = PromptGUI(root)
     root.mainloop()
+
 
 if __name__ == "__main__":
     main()
